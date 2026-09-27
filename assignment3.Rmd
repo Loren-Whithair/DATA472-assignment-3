@@ -13,7 +13,11 @@ knitr::opts_chunk$set(
 
 # Question 1
 
-First, initialise the variables for simulation and the population
+## Code, with comments to identify randomness
+
+Any line of code that adds randomness has been tagged as `#RANDOM`, with an additional tag of `INDEPENDENT` if the simulated values are independent of each other, and `DEPENDENT` otherwise.
+
+First, initialise the variables for simulation and the population:
 ```{r q1_init_vars}
 set.seed(42)
 
@@ -26,7 +30,7 @@ p <- 0.6 # initial probability of a "0" variant
 Then, initialise a population as a matrix:
 ```{r q1_init_pop}
 # get enough markers for the whole population
-data <- sample(0:1, N*L*2, replace=TRUE, prob=c(p,1-p))
+data <- sample(0:1, N*L*2, replace=TRUE, prob=c(p,1-p)) #RANDOM INDEPENDENT
 
 # population matrix (one row per individual, one column per copy of a marker)
 df <- matrix(data, nrow=N)
@@ -38,12 +42,12 @@ breed_new_gen <- function(df) {
   df_new <- df # work on a copy, so we always have initial population
   
   for (i in 1:nrow(df)){ # for every individual in the population...
-    parents <- sample(1:nrow(df), 2, replace=FALSE) # get two parents
+    parents <- sample(1:nrow(df), 2, replace=FALSE) #RANDOM DEPENDENT
     
     for (j in 1:L) {# for every marker copy...
       # pick an index of which copy we will take from parent 1 and parent 2
-      allele1 <- sample(1:2, 1, replace=TRUE) 
-      allele2 <- sample(1:2, 1, replace=TRUE)
+      allele1 <- sample(1:2, 1, replace=TRUE) #RANDOM INDEPENDENT
+      allele2 <- sample(1:2, 1, replace=TRUE) #RANDOM INDEPENDENT
       
       # get the variants from the parents
       copy1 <- df[parents[1], 2*(j-1)+ allele1]
@@ -74,5 +78,52 @@ for (g in 1:num_gen) {
 }
 ```
 
-We now have `df` as the original generation and `df_new` as the final generation (50th)
-# ```{r}
+We now have `df` as the original generation and `df_new` as the final generation (50th).
+
+```{r q1_sample_freq}
+
+# get indices of individuals to survey from  1st and final population
+s <- 20 # sample size
+p1_idxs <- sample(1:N, s, replace=FALSE) #RANDOM DEPENDENT
+pf_idxs <- sample(1:N, s, replace=FALSE) #RANDOM DEPENDENT
+
+# get the individuals
+df1 <- df[p1_idxs,]
+dff <- df_new[pf_idxs,]
+
+# calculate frequencies for histogram
+freqs1 <- sapply(1:L, function(j) {
+  cols <- 2*(j-1) + 1:2
+  sum(df1[,cols] == 0)/s/2
+})
+
+freqsf <- sapply(1:L, function(j) {
+  cols <- 2*(j-1) + 1:2
+  sum(dff[,cols] == 0)/s/2
+})
+
+# generate histograms
+xl <- c(0, 1)
+yl <- c(0, 30)
+par(mfrow=c(2,1))
+hist(freqs1, 
+     main="Frequencies of allele 0 in sample of first generation, across markers",
+     xlab="Frequency of allele 0",
+     ylab="Markers with this frequency",
+     xlim=xl, ylim=yl
+)
+hist(freqsf, 
+     main="Frequencies of allele 0 in sample of final generation, across markers",
+     xlab="Frequency of allele 0",
+     ylab="Markers with this frequency",
+     xlim=xl, ylim=yl
+)
+```
+
+## Observations of frequency
+
+Both histograms are centered around approximately  `0.6`, the initial probability of a "0" variant.
+
+The difference in variance demonstrates **genetic drift** - we can see that for the first generation, the frequency of a "0" for a given marker has 40% minimum, 80% maximum. For the final generation, there are at least some markers that consist entirely of the "0" variant.
+
+
