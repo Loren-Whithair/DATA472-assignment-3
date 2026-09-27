@@ -127,3 +127,51 @@ Both histograms are centered around approximately  `0.6`, the initial probabilit
 The difference in variance demonstrates **genetic drift** - we can see that for the first generation, the frequency of a "0" for a given marker has 40% minimum, 80% maximum. For the final generation, there are at least some markers that consist entirely of the "0" variant.
 
 
+# Question 2
+
+```{r q2_init_vars}
+
+set.seed(99)
+
+num_days <- 1000
+lambda_morn <- 1/8
+lambda_aft<- 1/4
+
+# store the results every day
+results <- rep(NA, num_days)
+```
+
+```{r q2_sim_customers}
+
+for (i in 1:num_days){
+  t <- 0 #time passed in the day
+  c <- 0 #customers
+  while(t < 180){ # first three hours of the day (9:00am to passed 12:00pm)
+    t <- t + rexp(1, lambda_morn) # time lapsed while waiting for customer
+    c <- c+1
+  }
+  while(t < 480){ # total number of minutes in day
+    t <- t + rexp(1, lambda_aft) # time lapsed while waiting for customer
+    c <- c+1
+  }
+  results[i] <- c
+}
+```
+
+```{r q2_plot_results}
+hist(results, 
+     main="Customers each day",
+     xlab="Customers",
+     ylab="Days with that many customers"
+)
+```
+```{r q2_mean_range}
+print(paste0("Mean: ", round(mean(results), 2)))
+print(paste0("Range: (", paste(range(results), collapse=", "), ")"))
+```
+
+## Observations
+
+While the distribution still somewhat resembles an exponential distribution (notice the longer tail at the upper end), it also is not far from a Normal distribution. Many days had between 90 and 100 customers, and the mean is 97.57. Variation at the lower end is slightly smaller than variation at the upper end, with the day wit the least customers being ~30 customers less than the mean, and the day with the most customers being >40 more than the mean.
+
+# Question 3
