@@ -6,7 +6,73 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+  echo = TRUE,
+  attr.source = ".numberLines")
 ```
 
 # Question 1
+
+First, initialise the variables for simulation and the population
+```{r q1_init_vars}
+set.seed(42)
+
+N <- 50 # population
+L <- 100 # genetic markers
+num_gen <- 20 # number of generations we will breed for
+p <- 0.6 # initial probability of a "0" variant
+```
+
+Then, initialise a population as a matrix:
+```{r q1_init_pop}
+# get enough markers for the whole population
+data <- sample(0:1, N*L*2, replace=TRUE, prob=c(p,1-p))
+
+# population matrix (one row per individual, one column per copy of a marker)
+df <- matrix(data, nrow=N)
+```
+
+Create a function that breeds a new generation from the existing population:
+```{r q1_breed_fn}
+breed_new_gen <- function(df) {
+  df_new <- df # work on a copy, so we always have initial population
+  
+  for (i in 1:nrow(df)){ # for every individual in the population...
+    parents <- sample(1:nrow(df), 2, replace=FALSE) # get two parents
+    
+    for (j in 1:L) {# for every marker copy...
+      # pick an index of which copy we will take from parent 1 and parent 2
+      allele1 <- sample(1:2, 1, replace=TRUE) 
+      allele2 <- sample(1:2, 1, replace=TRUE)
+      
+      # get the variants from the parents
+      copy1 <- df[parents[1], 2*(j-1)+ allele1]
+      copy2 <- df[parents[2], 2*(j-1)+ allele2]
+      
+      # insert the parent's marker copies into the child's
+      df_new[i,2*(j-1)+1] <- copy1
+      df_new[i,2*(j-1)+2] <- copy2
+    }
+  }
+  df_new
+}
+```
+
+Using these components to breed for the specified number of generations:
+```{r q1_breed}
+df_new <- df
+all_freqs <- matrix(NA, nrow=num_gen, ncol=L) #store the frequencies
+
+for (g in 1:num_gen) {
+  df_new <- breed_new_gen(df_new) # one round of breeding
+  
+  # save frequencies of this generation in row g. Each column is a 
+  all_freqs[g,] <- sapply(1:L, function(j) {
+    cols <- 2*(j-1) + 1:2
+    sum(df_new[,cols] == 0)/N/2
+  })
+}
+```
+
+We now have `df` as the original generation and `df_new` as the final generation (50th)
+# ```{r}
