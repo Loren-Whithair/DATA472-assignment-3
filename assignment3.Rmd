@@ -1,0 +1,12 @@
+---
+title: "DATA472 Assignment 3"
+author: 'Loren Whithair (Student ID: 300 434 521)'
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
