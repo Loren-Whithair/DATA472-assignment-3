@@ -175,3 +175,96 @@ print(paste0("Range: (", paste(range(results), collapse=", "), ")"))
 While the distribution still somewhat resembles an exponential distribution (notice the longer tail at the upper end), it also is not far from a Normal distribution. Many days had between 90 and 100 customers, and the mean is 97.57. Variation at the lower end is slightly smaller than variation at the upper end, with the day wit the least customers being ~30 customers less than the mean, and the day with the most customers being >40 more than the mean.
 
 # Question 3
+
+```{r cluster_setup}
+set.seed(666)
+
+N <- 1E4 # 10,000 observations
+
+# determine the clusters each observation belongs to
+clusters <- sample(
+  1:3, 
+  size=N, 
+  replace=TRUE, 
+  prob=c(0.2,0.5,0.3) # the probability of an observation being from a particular cluster
+)
+
+m <- 5 # number of measures per observations (dimension)
+```
+
+
+```{r cluster_sampling}
+output <- matrix(NA, nrow=N, ncol=m) #
+
+# Assign nominal data based on distribution 
+output[clusters==1,] <- sample(
+  1:3, 
+  sum(clusters==1)*m,
+  replace=TRUE,
+  prob=c(0.1,0.2,0.7)
+)
+
+output[clusters==2,] <- sample(
+  1:3, 
+  sum(clusters==2)*m,
+  replace=TRUE,
+  prob=c(0.8,0.15,0.05)
+)
+
+output[clusters==3,] <- sample(
+  1:3, 
+  sum(clusters==3)*m,
+  replace=TRUE,
+  prob=c(0.25,0.6,0.15)
+)
+```
+
+```{r output_display}
+
+#Plot three bar plots, one for each cluster, showing the distributions of the 3 categories. Label the plots appropriately.
+
+xl <- "Category"
+yl <- "Proportion of measurements"
+
+ylim <- c(0, 1)
+
+par(mfrow=c(1,3))
+
+
+barplot(
+  table(output[clusters==1,])/sum(clusters==1)/m, 
+  main="Cluster 1", 
+  xlab=xl, ylab=yl
+  , ylim=ylim
+)
+
+barplot(
+  table(output[clusters==2,])/sum(clusters==2)/m, 
+  main="Cluster 2", 
+  xlab=xl, ylab=yl
+  , ylim=ylim
+)
+
+barplot(
+  table(output[clusters==3,])/sum(clusters==3)/m, 
+  main="Cluster 3", 
+  xlab=xl, ylab=yl
+  , ylim=ylim
+)
+
+mtext("Frequency of each category by cluster", side=3, line=-1, outer=TRUE)
+```
+
+```{r sample_mean}
+print(mean(output))
+```
+```{r final_barplot}
+barplot(
+  table(output)/N/m, 
+  main="Overall frequencies", 
+  xlab=xl, ylab=yl
+  , ylim=ylim
+)
+```
+
+The overall mean represents the horizontal "centre of mass" of the total frequencies bar chart. It is the expected value of any single measure across all clusters.
